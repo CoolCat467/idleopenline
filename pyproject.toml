@@ -8,7 +8,7 @@ dynamic = ["version"]
 authors = [
   { name="CoolCat467", email="CoolCat467@duck.com" },
 ]
-description = "Mypy daemon extension for Python IDLE"
+description = "IDLE extension to open a specific line in a file from CLI"
 readme = {file = "README.md", content-type = "text/markdown"}
 license = {file = "LICENSE"}
 requires-python = ">=3.10"
@@ -27,7 +27,6 @@ classifiers = [
     "Topic :: Utilities",
     "Operating System :: OS Independent",
     "Framework :: IDLE",
-    "Framework :: Trio",
     "Typing :: Typed",
 ]
 keywords = ["cli", "idle", "extension", "development"]
@@ -177,7 +176,7 @@ legacy_tox_ini = """
     [gh-actions]
     python =
         3.10: py310, mypy, pytest
-        3.11: py311, mypy
+        3.11: py311, mypy, pytest
         3.12: py312, mypy, pytest
 
     [testenv]
