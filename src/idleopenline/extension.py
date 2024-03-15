@@ -24,12 +24,14 @@ __title__ = "extension"
 __author__ = "CoolCat467"
 __license__ = "GNU General Public License Version 3"
 
-from typing import TYPE_CHECKING, ClassVar, NamedTuple, Self
+from typing import TYPE_CHECKING, ClassVar, NamedTuple
 
 from idleopenline import utils
 
 if TYPE_CHECKING:
     from idlelib.pyshell import PyShellEditorWindow
+
+    from typing_extensions import Self
 
 
 def debug(message: object) -> None:
