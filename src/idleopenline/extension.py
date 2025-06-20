@@ -25,6 +25,7 @@ __author__ = "CoolCat467"
 __license__ = "GNU General Public License Version 3"
 
 from typing import TYPE_CHECKING, ClassVar, NamedTuple
+import sys
 
 from idleopenline import utils
 
@@ -73,6 +74,10 @@ class FilePosition(NamedTuple):
         col = 0
         col_end = 0
 
+        windows_drive_letter = ""
+        if sys.platform == "win32":
+            windows_drive_letter, file_position = file_position.split(":", 1)
+            windows_drive_letter += ":"
         position = file_position.split(":", 5)
 
         filename = position[0]
@@ -92,7 +97,7 @@ class FilePosition(NamedTuple):
             col, col_end = col_end, col
 
         return cls(
-            path=filename,
+            path=f'{windows_drive_letter}{filename}',
             line=line,
             col=col,
             line_end=line_end,
