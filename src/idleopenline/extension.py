@@ -24,8 +24,8 @@ __title__ = "extension"
 __author__ = "CoolCat467"
 __license__ = "GNU General Public License Version 3"
 
-from typing import TYPE_CHECKING, ClassVar, NamedTuple
 import sys
+from typing import TYPE_CHECKING, ClassVar, NamedTuple
 
 from idleopenline import utils
 
@@ -97,7 +97,7 @@ class FilePosition(NamedTuple):
             col, col_end = col_end, col
 
         return cls(
-            path=f'{windows_drive_letter}{filename}',
+            path=f"{windows_drive_letter}{filename}",
             line=line,
             col=col,
             line_end=line_end,
@@ -161,7 +161,7 @@ class idleopenline(utils.BaseExtension):  # noqa: N801
         goto_line_col(self.editwin, position.line, position.col)
         # If is range, select range.
         if position.is_range():
-            utils.higlight_region(self.text, "sel", *position.as_select())
+            utils.highlight_region(self.text, "sel", *position.as_select())
 
     # def close(self) -> None:
     #    """Called when any idle editor window closes"""
