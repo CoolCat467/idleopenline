@@ -1,7 +1,7 @@
 # IdleOpenLine
 Python IDLE extension to open a specific line in a file.
 
-[![Tests](https://github.com/CoolCat467/idleopenline/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/CoolCat467/idleopenline/actions/workflows/tests.yml)
+[![CI](https://github.com/CoolCat467/idleopenline/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/CoolCat467/idleopenline/actions/workflows/ci.yml)
 <!-- BADGIE TIME -->
 
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
