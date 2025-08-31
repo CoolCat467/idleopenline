@@ -394,6 +394,20 @@ def log_exceptions(function: Callable[PS, T]) -> Callable[PS, T]:
     return wrapper
 
 
+def log_exceptions_catch(function: Callable[PS, T]) -> Callable[PS, T]:
+    """Log any exceptions raised."""
+
+    @wraps(function)
+    def wrapper(*args: PS.args, **kwargs: PS.kwargs) -> T:
+        """Catch Exceptions, log them to log file, and re-raise."""
+        try:
+            return function(*args, **kwargs)
+        except Exception as exc:
+            extension_log_exception(exc)
+
+    return wrapper
+
+
 class Comment(NamedTuple):
     """Represents one comment."""
 

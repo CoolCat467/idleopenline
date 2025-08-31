@@ -25,6 +25,8 @@ __author__ = "CoolCat467"
 __license__ = "GNU General Public License Version 3"
 
 import sys
+from idlelib.config import idleConf
+from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, NamedTuple
 
 from idleopenline import utils
@@ -78,7 +80,7 @@ class FilePosition(NamedTuple):
         if sys.platform == "win32":
             windows_drive_letter, file_position = file_position.split(":", 1)
             windows_drive_letter += ":"
-        position = file_position.split(":", 5)
+        position = file_position.rsplit(":", 5)
 
         filename = position[0]
         if len(position) > 1:
@@ -103,6 +105,25 @@ class FilePosition(NamedTuple):
             line_end=line_end,
             col_end=col_end,
         )
+
+    def serialize(self) -> str:
+        """Return file position as string."""
+        if self.is_range():
+            return f"{self.path}:{self.line}:{self.col}:{self.line_end}:{self.col_end}"
+        if self.col != 0:
+            return f"{self.path}:{self.line}:{self.col}"
+        return f"{self.path}:{self.line}"
+
+    @classmethod
+    def from_editor_current(cls, editwin: PyShellEditorWindow) -> Self | None:
+        """Return file position from editwin current position."""
+        current_filename = editwin.io.filename
+        if current_filename is None:
+            return None
+        current_filename = str(Path(current_filename).absolute())
+        selected = utils.get_selected_text_indexes(editwin.text)
+        select_string = (":".join(selected)).replace(".", ":")
+        return cls.parse(f"{current_filename}:{select_string}")
 
 
 def goto_line_col(
@@ -132,9 +153,15 @@ class idleopenline(utils.BaseExtension):  # noqa: N801
         "enable": "True",
         "enable_editor": "True",
         "enable_shell": "False",
+        "save_last_position": "False",
     }
     # Default key binds for configuration file
     bind_defaults: ClassVar = {}
+
+    save_last_position: str = "False"
+
+    idlerc_folder = Path(idleConf.userdir).expanduser().absolute()
+    last_position_file = idlerc_folder / "last-positions.lst"
 
     def __init__(self, editwin: PyShellEditorWindow) -> None:
         """Initialize the settings for this extension."""
@@ -153,15 +180,51 @@ class idleopenline(utils.BaseExtension):  # noqa: N801
 
         # Only continue if there are changes in path
         if position.path == raw_filename:
-            return
+            if self.save_last_position != "True":
+                return
+            if not self.last_position_file.exists():
+                return
+            for line in self.last_position_file.read_text(
+                encoding="utf-8",
+            ).splitlines():
+                if raw_filename in line:
+                    position = FilePosition.parse(line)
+                    break
+        else:
+            # Reload correct path
+            self.editwin.io.loadfile(position.path)
 
-        # Reload correct path
-        self.editwin.io.loadfile(position.path)
         # Go to correct location in file
         goto_line_col(self.editwin, position.line, position.col)
         # If is range, select range.
         if position.is_range():
             utils.highlight_region(self.text, "sel", *position.as_select())
 
-    # def close(self) -> None:
-    #    """Called when any idle editor window closes"""
+    def save_current_position(self) -> None:
+        """Save current position position."""
+        position = FilePosition.from_editor_current(self.editwin)
+        if position is None:
+            return
+        if self.last_position_file.exists():
+            current_entries = self.last_position_file.read_text(
+                encoding="utf-8",
+            ).splitlines()
+        else:
+            current_entries = []
+
+        for idx, entry in reversed(tuple(enumerate(current_entries))):
+            if position.path in entry:
+                del current_entries[idx]
+
+        current_entries.insert(0, position.serialize())
+
+        current_entries = current_entries[:21]
+        with self.last_position_file.open("w", encoding="utf-8") as fp:
+            fp.write("\n".join(current_entries))
+
+    @utils.log_exceptions_catch
+    def close(self) -> None:
+        """Handle when any idle editor window closes."""
+        if self.save_last_position != "True":
+            return
+        self.save_current_position()

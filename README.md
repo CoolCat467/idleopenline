@@ -4,6 +4,7 @@ Python IDLE extension to open a specific line in a file.
 [![CI](https://github.com/CoolCat467/idleopenline/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/CoolCat467/idleopenline/actions/workflows/ci.yml)
 <!-- BADGIE TIME -->
 
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/CoolCat467/idleopenline/main.svg)](https://results.pre-commit.ci/latest/github/CoolCat467/idleopenline/main)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 
 <!-- END BADGIE TIME -->
@@ -49,3 +50,8 @@ following output: `Config should be good!`.
 If everything went well, alongside `ZzDummy` there should be and
 option called `idleopenline`. This is where you can configure if
 idleopenline is enabled or not.
+
+## Options
+- `save_last_position` - Controls if should save the line you are
+currently on and restore to that point if no location specified in the
+future. Saves up to 21 entries, just like Idle's recent files list.
