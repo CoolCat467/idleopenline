@@ -399,7 +399,7 @@ def log_exceptions_catch(function: Callable[PS, T]) -> Callable[PS, T | None]:
 
     @wraps(function)
     def wrapper(*args: PS.args, **kwargs: PS.kwargs) -> T | None:
-        """Catch Exceptions, log them to log file, and re-raise."""
+        """Catch Exceptions, log them to log file. Return None on error."""
         try:
             return function(*args, **kwargs)
         except Exception as exc:
