@@ -394,16 +394,17 @@ def log_exceptions(function: Callable[PS, T]) -> Callable[PS, T]:
     return wrapper
 
 
-def log_exceptions_catch(function: Callable[PS, T]) -> Callable[PS, T]:
-    """Log any exceptions raised."""
+def log_exceptions_catch(function: Callable[PS, T]) -> Callable[PS, T | None]:
+    """Log and catch any exceptions raised."""
 
     @wraps(function)
-    def wrapper(*args: PS.args, **kwargs: PS.kwargs) -> T:
+    def wrapper(*args: PS.args, **kwargs: PS.kwargs) -> T | None:
         """Catch Exceptions, log them to log file, and re-raise."""
         try:
             return function(*args, **kwargs)
         except Exception as exc:
             extension_log_exception(exc)
+            return None
 
     return wrapper
 

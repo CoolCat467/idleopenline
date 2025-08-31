@@ -203,6 +203,7 @@ class idleopenline(utils.BaseExtension):  # noqa: N801
     def save_current_position(self) -> None:
         """Save current position position."""
         position = FilePosition.from_editor_current(self.editwin)
+
         if position is None:
             return
         if self.last_position_file.exists():
