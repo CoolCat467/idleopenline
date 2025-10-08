@@ -32,6 +32,7 @@ from typing import TYPE_CHECKING, ClassVar, NamedTuple
 from idleopenline import utils
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from idlelib.pyshell import PyShellEditorWindow
 
     from typing_extensions import Self
@@ -40,7 +41,7 @@ if TYPE_CHECKING:
 def debug(message: object) -> None:
     """Print debug message."""
     # TODO: Censor username/user files
-    print(f"\n[{__title__}] DEBUG: {message}")
+    print(f"\n[{__name__}] DEBUG: {message}")
 
 
 def int_default(text: str, default: int = 0) -> int:
@@ -147,18 +148,22 @@ class idleopenline(utils.BaseExtension):  # noqa: N801
 
     __slots__ = ()
     # Extend the file and format menus.
-    menudefs: ClassVar = []
+    menudefs: ClassVar[
+        Sequence[tuple[str, Sequence[tuple[str, str] | None]]]
+    ] = []
     # Default values for configuration file
     values: ClassVar = {
         "enable": "True",
         "enable_editor": "True",
         "enable_shell": "False",
         "save_last_position": "False",
+        "max_entries": "21",
     }
     # Default key binds for configuration file
     bind_defaults: ClassVar = {}
 
     save_last_position: str = "False"
+    max_entries: int = 21
 
     idlerc_folder = Path(idleConf.userdir).expanduser().absolute()
     last_position_file = idlerc_folder / "last-positions.lst"
@@ -202,6 +207,8 @@ class idleopenline(utils.BaseExtension):  # noqa: N801
 
     def save_current_position(self) -> None:
         """Save current position position."""
+        self.reload()
+
         position = FilePosition.from_editor_current(self.editwin)
 
         if position is None:
@@ -216,10 +223,32 @@ class idleopenline(utils.BaseExtension):  # noqa: N801
         for idx, entry in reversed(tuple(enumerate(current_entries))):
             if position.path in entry:
                 del current_entries[idx]
+                continue
+            if ":" not in entry:
+                del current_entries[idx]
+                continue
+            try:
+                if sys.platform == "win32":
+                    path = ":".join(entry.split(":", 2)[1:])
+                else:
+                    path = entry.split(":", 1)[0]
+            except Exception as exc:
+                utils.extension_log_exception(exc)
+                del current_entries[idx]
+                continue
+            try:
+                if not Path(path).exists():
+                    debug(f"{path = } not exists")
+                    del current_entries[idx]
+                    continue
+            except Exception as exc:
+                utils.extension_log_exception(exc)
+                del current_entries[idx]
+                continue
 
         current_entries.insert(0, position.serialize())
 
-        current_entries = current_entries[:21]
+        current_entries = current_entries[: int(self.max_entries)]
         with self.last_position_file.open("w", encoding="utf-8") as fp:
             fp.write("\n".join(current_entries))
 
