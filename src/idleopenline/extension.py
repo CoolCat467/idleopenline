@@ -27,7 +27,7 @@ __license__ = "GNU General Public License Version 3"
 import sys
 from idlelib.config import idleConf
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar, NamedTuple
+from typing import TYPE_CHECKING, ClassVar
 
 from idleopenline import utils
 
@@ -35,96 +35,11 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from idlelib.pyshell import PyShellEditorWindow
 
-    from typing_extensions import Self
-
 
 def debug(message: object) -> None:
     """Print debug message."""
     # TODO: Censor username/user files
     print(f"\n[{__name__}] DEBUG: {message}")
-
-
-def int_default(text: str, default: int = 0) -> int:
-    """Return text as int or default if there is a ValueError."""
-    try:
-        return int(text)
-    except ValueError:
-        return default
-
-
-class FilePosition(NamedTuple):
-    """File Position."""
-
-    path: str
-    line: int
-    col: int
-    line_end: int
-    col_end: int
-
-    def is_range(self) -> bool:
-        """Return True if file position covers a range."""
-        return self.line != self.line_end or self.col != self.col_end
-
-    def as_select(self) -> tuple[str, str]:
-        """Return text selection region index strings."""
-        return f"{self.line}.{self.col}", f"{self.line_end}.{self.col_end}"
-
-    @classmethod
-    def parse(cls, file_position: str) -> Self:
-        """Parse file position string."""
-        line = 0
-        line_end = 0
-        col = 0
-        col_end = 0
-
-        windows_drive_letter = ""
-        if sys.platform == "win32":
-            windows_drive_letter, file_position = file_position.split(":", 1)
-            windows_drive_letter += ":"
-        position = file_position.rsplit(":", 5)
-
-        filename = position[0]
-        if len(position) > 1:
-            line = int_default(position[1])
-            line_end = line
-        if len(position) > 2:
-            col = int_default(position[2])
-            col_end = col
-        if len(position) > 4:
-            line_end = int_default(position[3], line_end)
-            col_end = int_default(position[4], col_end)
-
-        # If line end is before beginning, swap.
-        if line_end < line:
-            line, line_end = line_end, line
-            col, col_end = col_end, col
-
-        return cls(
-            path=f"{windows_drive_letter}{filename}",
-            line=line,
-            col=col,
-            line_end=line_end,
-            col_end=col_end,
-        )
-
-    def serialize(self) -> str:
-        """Return file position as string."""
-        if self.is_range():
-            return f"{self.path}:{self.line}:{self.col}:{self.line_end}:{self.col_end}"
-        if self.col != 0:
-            return f"{self.path}:{self.line}:{self.col}"
-        return f"{self.path}:{self.line}"
-
-    @classmethod
-    def from_editor_current(cls, editwin: PyShellEditorWindow) -> Self | None:
-        """Return file position from editwin current position."""
-        current_filename = editwin.io.filename
-        if current_filename is None:
-            return None
-        current_filename = str(Path(current_filename).absolute())
-        selected = utils.get_selected_text_indexes(editwin.text)
-        select_string = (":".join(selected)).replace(".", ":")
-        return cls.parse(f"{current_filename}:{select_string}")
 
 
 def goto_line_col(
@@ -181,7 +96,7 @@ class idleopenline(utils.BaseExtension):  # noqa: N801
         if raw_filename is None:
             return
 
-        position = FilePosition.parse(raw_filename)
+        position = utils.FilePosition.parse(raw_filename)
 
         # Only continue if there are changes in path
         if position.path == raw_filename:
@@ -193,7 +108,7 @@ class idleopenline(utils.BaseExtension):  # noqa: N801
                 encoding="utf-8",
             ).splitlines():
                 if raw_filename in line:
-                    position = FilePosition.parse(line)
+                    position = utils.FilePosition.parse(line)
                     break
         else:
             # Reload correct path
@@ -209,7 +124,7 @@ class idleopenline(utils.BaseExtension):  # noqa: N801
         """Save current position position."""
         self.reload()
 
-        position = FilePosition.from_editor_current(self.editwin)
+        position = utils.FilePosition.from_editor_current(self.editwin)
 
         if position is None:
             return
