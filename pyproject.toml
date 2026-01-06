@@ -22,6 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: 3 :: Only",
     "Topic :: Software Development",
     "Topic :: Text Editors :: Integrated Development Environments (IDE)",
@@ -37,19 +38,20 @@ dependencies = []
 version = {attr = "idleopenline.__init__.__version__"}
 
 [project.optional-dependencies]
-user = ["idleuserextend~=0.0.2"]
+user = ["idleuserextend~=0.0.3"]
 tests = [
     "pytest>=5.0",
     "pytest-cov>=6.0.0",
     "coverage>=7.2.5",
-    "uv>=0.5.21",
-    "mypy>=1.17.0",
 ]
 tools = [
+    "uv>=0.5.21",
     "ruff>=0.9.2",
     "codespell>=2.3.0",
     "pre-commit>=4.2.0",
     "attrs>=25.3.0",
+    "mypy>=1.19.1",
+    "types-idlelib>=0.0.0",
 ]
 
 [project.urls]
@@ -66,8 +68,10 @@ idleopenline = ["py.typed"]
 package = true
 
 [tool.mypy]
-files = ["src/idleopenline/",]
-mypy_path = "stubs"
+files = [
+    "src/idleopenline/",
+    "tests",
+]
 enable_error_code = [
     "truthy-bool",
     "mutable-override",
@@ -164,7 +168,7 @@ extend-ignore = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--cov-report=xml --cov-report=term-missing --cov=idleopenline"
+addopts = "--cov-report=term-missing --cov=idleopenline"
 testpaths = [
     "tests",
 ]
