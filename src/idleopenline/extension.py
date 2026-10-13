@@ -142,22 +142,14 @@ class idleopenline(utils.BaseExtension):  # noqa: N801
             if ":" not in entry:
                 del current_entries[idx]
                 continue
-            try:
-                if sys.platform == "win32":
-                    path = ":".join(entry.split(":", 2)[1:])
-                else:
-                    path = entry.split(":", 1)[0]
-            except Exception as exc:
-                utils.extension_log_exception(exc)
-                del current_entries[idx]
-                continue
-            try:
-                if not Path(path).exists():
-                    debug(f"{path = } not exists")
-                    del current_entries[idx]
-                    continue
-            except Exception as exc:
-                utils.extension_log_exception(exc)
+            # Getting path without line indicators
+            if sys.platform == "win32":
+                # have to handle windows drive letters
+                path = ":".join(entry.split(":", 2)[:2])
+            else:
+                path = entry.split(":", 1)[0]
+            if not Path(path).exists():
+                debug(f"{path = } not exists")
                 del current_entries[idx]
                 continue
 
