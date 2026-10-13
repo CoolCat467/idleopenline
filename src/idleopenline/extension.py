@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 # IDLE Open Line Extension
-# Copyright (C) 2024-2025  CoolCat467
+# Copyright (C) 2024-2026  CoolCat467
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@ __title__ = "extension"
 __author__ = "CoolCat467"
 __license__ = "GNU General Public License Version 3"
 
-import sys
 from idlelib.config import idleConf
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
@@ -142,14 +141,10 @@ class idleopenline(utils.BaseExtension):  # noqa: N801
             if ":" not in entry:
                 del current_entries[idx]
                 continue
-            # Getting path without line indicators
-            if sys.platform == "win32":
-                # have to handle windows drive letters
-                path = ":".join(entry.split(":", 2)[:2])
-            else:
-                path = entry.split(":", 1)[0]
+            file_pos = utils.FilePosition.parse(entry)
+            path = file_pos.path
             if not Path(path).exists():
-                debug(f"{path = } not exists")
+                debug(f"{path = } does not exist")
                 del current_entries[idx]
                 continue
 
@@ -157,7 +152,7 @@ class idleopenline(utils.BaseExtension):  # noqa: N801
 
         current_entries = current_entries[: int(self.max_entries)]
         with self.last_position_file.open("w", encoding="utf-8") as fp:
-            fp.write("\n".join(current_entries))
+            fp.write("\n".join(current_entries) + "\n")
 
     @utils.log_exceptions_catch
     def close(self) -> None:
